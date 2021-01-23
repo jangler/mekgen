@@ -1,0 +1,245 @@
+[
+	{
+		"name": "LLASER",
+		"heat": 12,
+		"damage": 10,
+		"range": 1019,
+		"mass": 4,
+		"crit": 1,
+		"ammo": 0
+	},
+	{
+		"name": "MLASER",
+		"heat": 5,
+		"damage": 7,
+		"range": 510,
+		"mass": 1,
+		"crit": 1,
+		"ammo": 0
+	},
+	{
+		"name": "SLASER",
+		"heat": 2,
+		"damage": 5,
+		"range": 255,
+		"mass": 0.5,
+		"crit": 1,
+		"ammo": 0
+	},
+	{
+		"name": "PPC",
+		"heat": 15,
+		"damage": 15,
+		"range": 746,
+		"mass": 6,
+		"crit": 2,
+		"ammo": 0
+	},
+	{
+		"name": "LPLAS",
+		"heat": 10,
+		"damage": 10,
+		"range": 815,
+		"mass": 6,
+		"crit": 2,
+		"ammo": 0
+	},
+	{
+		"name": "MPLAS",
+		"heat": 4,
+		"damage": 7,
+		"range": 408,
+		"mass": 2,
+		"crit": 1,
+		"ammo": 0
+	},
+	{
+		"name": "SPLAS",
+		"heat": 2,
+		"damage": 3,
+		"range": 203,
+		"mass": 1,
+		"crit": 1,
+		"ammo": 0
+	},
+	{
+		"name": "GAUSS",
+		"heat": 1,
+		"damage": 15,
+		"range": 1820,
+		"mass": 12,
+		"crit": 6,
+		"ammo": 8
+	},
+	{
+		"name": "xAC2",
+		"heat": 1,
+		"damage": 2,
+		"range": 800,
+		"mass": 5,
+		"crit": 3,
+		"ammo": 45
+	},
+	{
+		"name": "xAC5",
+		"heat": 1,
+		"damage": 5,
+		"range": 700,
+		"mass": 7,
+		"crit": 4,
+		"ammo": 20
+	},
+	{
+		"name": "xAC10",
+		"heat": 2,
+		"damage": 10,
+		"range": 600,
+		"mass": 10,
+		"crit": 5,
+		"ammo": 10
+	},
+	{
+		"name": "xAC20",
+		"heat": 6,
+		"damage": 20,
+		"range": 450,
+		"mass": 12,
+		"crit": 9,
+		"ammo": 5
+	},
+	{
+		"name": "MGun",
+		"heat": 0,
+		"damage": 2,
+		"range": 175,
+		"mass": 0.25,
+		"crit": 1,
+		"ammo": 200
+	},
+	{
+		"name": "uAC2",
+		"heat": 1,
+		"damage": 2,
+		"range": 700,
+		"mass": 5,
+		"crit": 2,
+		"ammo": 45
+	},
+	{
+		"name": "uAC5",
+		"heat": 1,
+		"damage": 5,
+		"range": 600,
+		"mass": 7,
+		"crit": 3,
+		"ammo": 20
+	},
+	{
+		"name": "uAC10",
+		"heat": 3,
+		"damage": 10,
+		"range": 500,
+		"mass": 10,
+		"crit": 4,
+		"ammo": 10
+	},
+	{
+		"name": "uAC20",
+		"heat": 7,
+		"damage": 20,
+		"range": 400,
+		"mass": 12,
+		"crit": 8,
+		"ammo": 5
+	},
+	{
+		"name": "SRM 2",
+		"heat": 2,
+		"damage": 4,
+		"range": 497,
+		"mass": 0.5,
+		"crit": 1,
+		"ammo": 50
+	},
+	{
+		"name": "SRM 4",
+		"heat": 3,
+		"damage": 8,
+		"range": 497,
+		"mass": 1,
+		"crit": 1,
+		"ammo": 25
+	},
+	{
+		"name": "SRM 6",
+		"heat": 4,
+		"damage": 12,
+		"range": 497,
+		"mass": 1.5,
+		"crit": 1,
+		"ammo": 15
+	},
+	{
+		"name": "SSRM2",
+		"heat": 2,
+		"damage": 4,
+		"range": 497,
+		"mass": 1,
+		"crit": 1,
+		"ammo": 50
+	},
+	{
+		"name": "SSRM4",
+		"heat": 3,
+		"damage": 8,
+		"range": 497,
+		"mass": 2,
+		"crit": 1,
+		"ammo": 25
+	},
+	{
+		"name": "SSRM6",
+		"heat": 4,
+		"damage": 12,
+		"range": 497,
+		"mass": 3,
+		"crit": 2,
+		"ammo": 15
+	},
+	{
+		"name": "LRM5",
+		"heat": 2,
+		"damage": 5,
+		"range": 1000,
+		"mass": 1,
+		"crit": 1,
+		"ammo": 24
+	},
+	{
+		"name": "LRM10",
+		"heat": 4,
+		"damage": 10,
+		"range": 1000,
+		"mass": 2.5,
+		"crit": 1,
+		"ammo": 12
+	},
+	{
+		"name": "LRM15",
+		"heat": 5,
+		"damage": 15,
+		"range": 1000,
+		"mass": 3.5,
+		"crit": 2,
+		"ammo": 8
+	},
+	{
+		"name": "LRM20",
+		"heat": 6,
+		"damage": 20,
+		"range": 1000,
+		"mass": 5,
+		"crit": 4,
+		"ammo": 6
+	}
+]

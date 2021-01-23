@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>MechWarrior 2: 31CC MEK Generator</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
+    <script src="randomizer.js"></script>
+  </head>
+  <body>
+    <h1>MechWarrior 2: 31CC MEK Generator</h1>
+    <small>version 0.0.0</small>
+
+    <div class="sep"></div>
+
+    <p>This webpage randomly generates .MEK files that can be placed in your MECH2/MEK/
+      directory.</p>
+
+    <p>
+      Tonnage: 
+      <input type="number" id="min_tonnage" name="min_tonnage" min="20" max="100" step="5"
+        value="20" style="width:4em;">
+      to
+      <input type="number" id="max_tonnage" name="max_tonnage" min="20" max="100" step="5"
+        value="100" style="width:4em;">
+      <br style="margin-bottom:1em;">
+      <input type="checkbox" id="always_max_jets" name="always_max_jets" checked>
+      <label for="always_max_jets">Always use maximum jump jets</label>
+      <br>
+      <input type="checkbox" id="require_energy_weapon" name="require_energy_weapon" checked>
+      <label for="require_energy_weapon">Require an energy weapon</label>
+    </p>
+
+    <p>
+      <button type="button" onclick="generate();">Generate</button>
+      <a id="download_link"></a>
+    </p>
+
+    <div class="sep"></div>
+
+    <footer>
+      <p><a href="https://github.com/jangler/mekgen">View source code on GitHub</a></p>
+    </footer>
+
+    <script>
+const min_tonnage = document.getElementById('min_tonnage');
+const max_tonnage = document.getElementById('max_tonnage');
+const always_max_jets = document.getElementById('always_max_jets');
+const require_energy_weapon = document.getElementById('require_energy_weapon');
+const download_link = document.getElementById('download_link');
+
+function generate() {
+  let mech = rollMech({
+    min_mass: min_tonnage.value,
+    max_mass: max_tonnage.value,
+    always_max_jets: always_max_jets.checked,
+    require_energy_weapon: require_energy_weapon,
+  });
+  console.log(mech);
+  let blob = new Blob([writeMEK(mech)], {type: 'application/mek'});
+  let url = URL.createObjectURL(blob);
+  download_link.href = url;
+  download_link.download = mech.chassis.mek_name + '99USR.MEK';
+  download_link.text = download_link.download;
+}
+    </script>
+  </body>
+</html>

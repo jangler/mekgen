@@ -5,7 +5,7 @@ const RIGHT_LEG = 6, LEFT_LEG = 7;
 
 // returns a byte array representing a MEK file for the given mech.
 function writeMEK(mech) {
-	let num_bytes = 344 + 8 * (mech.weapons.length + mech.ammo.length) + 50;
+	let num_bytes = 344 + 8 * (mech.weapons.length + countAmmo(mech.weapons)) + 50;
 	let array = new Uint8Array(num_bytes);
 
 	// "header"
@@ -14,7 +14,7 @@ function writeMEK(mech) {
 	array[8] = mech.num_jets;
 	array[12] = mech.num_heat_sinks;
 	array[16] = mech.weapons.length;
-	array[20] = mech.ammo.length;
+	array[20] = countAmmo(mech.weapons);
 	let offset = 24;
 
 	// body sections
@@ -23,17 +23,26 @@ function writeMEK(mech) {
 		offset += 40;
 	}
 
-	// weapon/ammo list
+	// weapon list
 	for (let i = 0; i < mech.weapons.length; i++) {
 		let weapon = mech.weapons[i];
-		setWeaponOrAmmo(array.subarray(offset, offset + 4), weapon, false);
+		setWeaponOrAmmo(array.subarray(offset, offset + 4), weapon, null);
 		array[offset + 4] = 0xff;
 		array[offset + 5] = 0xff;
-		for (let j = 0; j < weapon.ammo; j++) {
-			setWeaponOrAmmo(array.subarray(offset, offset + 4), weapon, true);
-			setWeaponOrAmmo(array.subarray(offset + 4, offset + 8), weapon, false);
-		}
+		array[offset + 6] = 0xff;
+		array[offset + 7] = 0xff;
 		offset += 8;
+	}
+
+	// ammo list
+	let ammo_counts = {};
+	for (let i = 0; i < mech.weapons.length; i++) {
+		let weapon = mech.weapons[i];
+		for (let j = 0; j < weapon.ammo; j++) {
+			setWeaponOrAmmo(array.subarray(offset, offset + 4), weapon, ammo_counts);
+			setWeaponOrAmmo(array.subarray(offset + 4, offset + 8), weapon, null);
+			offset += 8;
+		}
 	}
 
 	// name/comment
@@ -50,8 +59,7 @@ function setBodyPart(array, mech, part) {
 	array[4] = mech.rear_armor[part];
 	array[8] = mekfmt.part_type[part];
 	for (let i = 0; i < mech.criticals[part].length; i++) {
-		let thing = mech.criticals[part][i];
-		let id = criticals[thing]['id'];
+		let id = mech.criticals[part][i];
 		array[12 + i * 2] = id & 0xff;
 		array[13 + i * 2] = id >> 8;
 	}
@@ -60,15 +68,28 @@ function setBodyPart(array, mech, part) {
 }
 
 // fills a byte array with a weapon data structure.
-// TODO handle ammo IDs correctly
-function setWeaponOrAmmo(array, item, is_ammo) {
-	let id = criticals[item.name]['id'];
-	if (is_ammo) {
-		id += 10000;
-	}
-	if (item.number != 0) {
-		id += item.number - 1; // e.g. the "#1" in "ER PPC #1"
+function setWeaponOrAmmo(array, weapon, ammo_counts) {
+	let id = criticals[weapon.weapon.name]['id'];
+	let type_id = Math.floor(id / 50) * 50;
+	if (ammo_counts == null) {
+		id = type_id + weapon.number;
+	} else {
+		if (ammo_counts[type_id] == undefined) {
+			ammo_counts[type_id] = 1;
+		} else {
+			ammo_counts[type_id]++;
+		}
+		id = 10000 + type_id + ammo_counts[type_id];
 	}
 	array[0] = id & 0xff;
 	array[1] = id >> 8;
+}
+
+// counts the total number of ammo criticals.
+function countAmmo(weapons) {
+	let n = 0;
+	for (let i = 0; i < weapons.length; i++) {
+		n += weapons[i].ammo;
+	}
+	return n;
 }

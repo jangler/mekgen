@@ -6,8 +6,7 @@ const MAX_ARMOR_FRONT_BACK_RATIO = 2.5;
 // returns a fully specified random mech within the given limitations.
 // TODO don't allow engines + jets to be more than total allowed mass
 function rollMech(options) {
-	let mech = {xl: true, endo: true, ferro: true, weapons: [], ammo: [],
-		num_heat_sinks: 20};
+	let mech = {xl: true, endo: true, ferro: true, weapons: [], num_heat_sinks: 20};
 	mech.chassis = rollChassis(options.min_mass, options.max_mass);
 	if (mech.chassis === undefined) {
 		console.error('invalid mass restrictions');
@@ -77,6 +76,7 @@ function rollArmor(mech) {
 			mech.front_armor[i] = Math.floor(mech.chassis.max_armor[i] * fraction);
 		}
 	}
+	mech.total_armor_units = sum(mech.front_armor) + sum(mech.rear_armor);
 }
 
 // returns the sum of an array of numbers.
@@ -106,7 +106,8 @@ function mechFreeMass(mech) {
 // returns the amount of used mass.
 function mechUsedMass(mech) {
 	let mass = mech.chassis.gyro_mass[mech.engine] + mechlab.cockpit_mass +
-		Math.max(criticals.double_heat_sink) + mech.jet_mass * mech.num_jets;
+		arrayMax(criticals.double_heat_sink.crit) +
+		mech.chassis.jet_mass * mech.num_jets;
 
 	// engine
 	if (mech.xl) {
@@ -124,16 +125,38 @@ function mechUsedMass(mech) {
 
 	// armor
 	if (mech.ferro) {
-		mass += ferroArmorMass
+		mass += ferroArmorMass(mech.total_armor_units)
 	} else {
 		console.error('std armor mass NYI'); // TODO
 	}
 
 	// weapons/ammo
 	for (let i = 0; i < mech.weapons.length; i++) {
-		mass += weapons[mech.weapons[i]].mass;
-		mass += mech.weapons[i].ammo * mechlab.ammo_unit_mass;
+		mass += mech.weapons[i].weapon.mass +
+			mech.weapons[i].ammo * mechlab.ammo_unit_mass;
 	}
+
+	return mass;
+}
+
+// returns the largest value in the array.
+function arrayMax(array) {
+	let x = array[0];
+	for (let i = 1; i < array.length; i++) {
+		if (array[i] > x) {
+			x = array[i];
+		}
+	}
+	return x;
+}
+
+// returns the number of unused critical slots.
+function mechFreeCriticals(mech) {
+	let n = 0;
+	for (let i = 0; i < mech.criticals.length; i++) {
+		n += mechlab.body_crits[i] - mech.criticals[i].length;
+	}
+	return n;
 }
 
 // (re)allocates all a mech's criticals.
@@ -165,7 +188,16 @@ function allocateCriticals(mech) {
 	for (let i = 0; i < mech.num_jets; i++) {
 		required_crits.push('jump_jet');
 	}
-	// TODO weapons, ammo
+	for (let i = 0; i < mech.weapons.length; i++) {
+		let weapon = mech.weapons[i];
+		required_crits.push(weapon.weapon.name);
+		for (let j = 0; j < weapon.ammo; j++) {
+			required_crits.push('ammo_' + weapon.weapon.name);
+		}
+	}
+
+	// count the number of instances of non-identical items
+	let counts = {};
 
 	// allocate criticals
 	// TODO: what happens if something doesn't fit?
@@ -181,8 +213,18 @@ function allocateCriticals(mech) {
 			let part = mech.criticals[j];
 			if (crit.crit[j] > 0 &&
 				mechlab.body_crits[j] - part.length >= crit.crit[j]) {
+				let type_id = Math.floor(crit.id / 50) * 50;
+				let id = type_id;
+				if (crit.id % 50 != 0) {
+					if (counts[type_id] == undefined) {
+						counts[type_id] = 1;
+					} else {
+						counts[type_id]++;
+					}
+					id = type_id + counts[type_id];
+				}
 				for (let k = 0; k < crit.crit[j]; k++) {
-					part.push(name);
+					part.push(id);
 				}
 				break;
 			}
@@ -193,5 +235,43 @@ function allocateCriticals(mech) {
 // randomly allocates weapons and ammo to the mech, including allocating
 // criticals.
 function rollWeapons(mech, require_energy_weapon) {
-	// TODO
+	let counts = {};
+	while (mech.weapons.length < mechlab.max_weapons) {
+		let free_crit = mechFreeCriticals(mech);
+		let free_mass = mechFreeMass(mech);
+		if (free_crit == 0 || free_mass < 0.5) {
+			break;
+		}
+		for (let tries = 0; tries < 10; tries++) {
+			let weapon = randomChoice(weapons);
+			let mass = weapon.mass, crit = weapon.crit;
+			if (weapon.ammo != 0) {
+				mass += mechlab.ammo_unit_mass;
+				crit += mechlab.ammo_crit;
+			}
+			if (mass > free_mass || crit > free_crit) {
+				continue;
+			}
+
+			// found a weapon that fits
+			if (counts[weapon.name] == undefined) {
+				counts[weapon.name] = 1;
+			} else {
+				counts[weapon.name]++;
+			}
+			mech.weapons.push({
+				weapon: weapon,
+				number: counts[weapon.name],
+				ammo: weapon.ammo != 0 ? 1 : 0,
+			})
+			allocateCriticals(mech);
+			break;
+		}
+	}
+}
+
+// returns a random element from an array.
+function randomChoice(array) {
+	let i = Math.floor(Math.random() * array.length);
+	return array[i];
 }

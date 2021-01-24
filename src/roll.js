@@ -31,7 +31,7 @@ function rollMech(options) {
 		return mech;
 	}
 	rollWeapons(mech, mechFreeMass(mech), false);
-	mech.variant_name = 'mekgen test';
+	mech.variant_name = 'mekgen';
 	return mech;
 }
 

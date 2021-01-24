@@ -1,6 +1,8 @@
 {
 	"xl_mult": 0.5,
 	"cockpit_mass": 3,
+	"minimum_heat_sinks": 10,
+	"engine_rating_per_heat_sink": 25,
 	"internal_mult": 0.1,
 	"endo_mult": 0.5,
 	"endo_crit": 7,

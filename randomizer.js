@@ -481,6 +481,8 @@ const criticals = {
 const mechlab = {
 	"xl_mult": 0.5,
 	"cockpit_mass": 3,
+	"minimum_heat_sinks": 10,
+	"engine_rating_per_heat_sink": 25,
 	"internal_mult": 0.1,
 	"endo_mult": 0.5,
 	"endo_crit": 7,
@@ -762,7 +764,7 @@ function writeMEK(mech) {
 	array[0] = mech.chassis.max_mass;
 	array[4] = mech.engine;
 	array[8] = mech.num_jets;
-	array[12] = mech.num_heat_sinks;
+	array[12] = mech.num_heat_sinks * (mech.double_heat_sinks ? 2 : 1);
 	array[16] = mech.weapons.length;
 	array[20] = countAmmo(mech.weapons);
 	let offset = 24;
@@ -854,7 +856,14 @@ const MAX_ARMOR_FRONT_BACK_RATIO = 2.5;
 // returns a fully specified random mech within the given limitations.
 // TODO don't allow engines + jets to be more than total allowed mass
 function rollMech(options) {
-	let mech = {xl: true, endo: true, ferro: true, weapons: [], num_heat_sinks: 20};
+	let mech = {
+		xl: true,
+		double_heat_sinks: true,
+		endo: true,
+		ferro: true,
+		num_heat_sinks: mechlab.minimum_heat_sinks,
+		weapons: [],
+	};
 	mech.chassis = rollChassis(options.min_mass, options.max_mass);
 	if (mech.chassis === undefined) {
 		console.error('invalid mass restrictions');
@@ -1022,6 +1031,11 @@ function allocateCriticals(mech) {
 	}
 	if (mech.xl) {
 		required_crits.push('right_xl_engine', 'left_xl_engine');
+	}
+	for (let i = mech.chassis.max_mass * mech.engine;
+		i <= mech.num_heat_sinks * mechlab.engine_rating_per_heat_sink;
+		i += mechlab.engine_rating_per_heat_sink) {
+		required_crits.push('double_heat_sink');
 	}
 	if (mech.endo) {
 		for (let i = 0; i < mechlab.endo_crit; i++) {

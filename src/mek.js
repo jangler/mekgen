@@ -12,7 +12,7 @@ function writeMEK(mech) {
 	array[0] = mech.chassis.max_mass;
 	array[4] = mech.engine;
 	array[8] = mech.num_jets;
-	array[12] = mech.num_heat_sinks;
+	array[12] = mech.num_heat_sinks * (mech.double_heat_sinks ? 2 : 1);
 	array[16] = mech.weapons.length;
 	array[20] = countAmmo(mech.weapons);
 	let offset = 24;

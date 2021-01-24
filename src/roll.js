@@ -8,25 +8,29 @@ const MAX_ARMOR_FRONT_BACK_RATIO = 2.5;
 function rollMech(options) {
 	let mech = {
 		xl: true,
+		engine: 1,
 		double_heat_sinks: true,
+		num_heat_sinks: mechlab.minimum_heat_sinks,
+		num_jets: 0,
 		endo: true,
 		ferro: true,
-		num_heat_sinks: mechlab.minimum_heat_sinks,
+		total_armor_units: 1,
 		weapons: [],
+		weapon_counts: {},
 	};
 	mech.chassis = rollChassis(options.min_mass, options.max_mass);
-	if (mech.chassis === undefined) {
+	if (!mech.chassis) {
 		console.error('invalid mass restrictions');
+		return false;
 	}
-	mech.engine = rollEngine(mech.chassis);
-	if (options.always_max_jets) {
-		mech.num_jets = mech.engine;
-	} else {
-		mech.num_jets = rollJets(mech.engine);
-	}
-	rollArmor(mech);
 	allocateCriticals(mech);
-	rollWeapons(mech, options.require_energy_weapon);
+	rollWeapons(mech, 2, options.require_energy_weapon);
+	rollArmor(mech);
+	if (!rollEngineAndJets(mech, options.always_max_jets)) {
+		console.error("couldn't fit engine");
+		return false;
+	}
+	rollWeapons(mech, mechFreeMass(mech), false);
 	mech.variant_name = 'mekgen test';
 	return mech;
 }
@@ -41,24 +45,30 @@ function rollChassis(min_mass, max_mass) {
 			return chassis[index];
 		}
 	}
+	return false;
 }
 
 // linear distribution among the chassis' n/2 fastest engines.
-function rollEngine(chassis) {
-	let n = chassis.engine_mass.length;
-	return Math.ceil(n/2) + Math.floor(Math.random() * n/2);
-}
-
-// rolls the number of jets a mech will have.
-function rollJets(engine) {
-	if (Math.random() < JET_CHANCE) {
-		return 1 + Math.floor(Math.random() * engine);
+function rollEngineAndJets(mech, always_max_jets) {
+	let n = mech.chassis.engine_mass.length;
+	mech.engine = 0;
+	let free_mass = mechFreeMass(mech);
+	for (let tries = 0; tries < 100; tries++) {
+		mech.engine = Math.ceil(n/2) + Math.floor(Math.random() * n/2);
+		if (always_max_jets) {
+			mech.num_jets = mech.engine;
+		} else if (Math.random() < JET_CHANCE) {
+			mech.num_jets = 1 + Math.floor(Math.random() * engine);
+		}
+		if (mechFreeMass(mech) >= 0) {
+			return true;
+		}
 	}
-	return 0;
+	allocateCriticals(mech);
+	return false;
 }
 
 // rolls the amount of armor a mech will have.
-// TODO: what happens if free_mass and MIN_ARMOR_FRACTION are unsatisfiable?
 function rollArmor(mech) {
 	// determine quantity of armor
 	let free_mass = mechFreeMass(mech);
@@ -113,7 +123,7 @@ function mechFreeMass(mech) {
 // returns the amount of used mass.
 function mechUsedMass(mech) {
 	let mass = mech.chassis.gyro_mass[mech.engine] + mechlab.cockpit_mass +
-		arrayMax(criticals.double_heat_sink.crit) +
+		mech.num_heat_sinks - mechlab.minimum_heat_sinks +
 		mech.chassis.jet_mass * mech.num_jets;
 
 	// engine
@@ -246,36 +256,40 @@ function allocateCriticals(mech) {
 
 // randomly allocates weapons and ammo to the mech, including allocating
 // criticals.
-function rollWeapons(mech, require_energy_weapon) {
-	let counts = {};
+function rollWeapons(mech, mass_limit, energy_only) {
+	console.log('enter');
 	while (mech.weapons.length < mechlab.max_weapons) {
 		let free_crit = mechFreeCriticals(mech);
-		let free_mass = mechFreeMass(mech);
-		if (free_crit == 0 || free_mass < 0.5) {
+		console.log(free_crit, mass_limit);
+		if (free_crit == 0 || mass_limit < 0.5) {
 			break;
 		}
 		for (let tries = 0; tries < 10; tries++) {
 			let weapon = randomChoice(weapons);
 			let mass = weapon.mass, crit = weapon.crit;
 			if (weapon.ammo != 0) {
+				if (energy_only) {
+					continue;
+				}
 				mass += mechlab.ammo_unit_mass;
 				crit += mechlab.ammo_crit;
 			}
-			if (mass > free_mass || crit > free_crit) {
+			if (mass > mass_limit || crit > free_crit) {
 				continue;
 			}
 
 			// found a weapon that fits
-			if (counts[weapon.name] == undefined) {
-				counts[weapon.name] = 1;
+			if (mech.weapon_counts[weapon.name] == undefined) {
+				mech.weapon_counts[weapon.name] = 1;
 			} else {
-				counts[weapon.name]++;
+				mech.weapon_counts[weapon.name]++;
 			}
 			mech.weapons.push({
 				weapon: weapon,
-				number: counts[weapon.name],
+				number: mech.weapon_counts[weapon.name],
 				ammo: weapon.ammo != 0 ? 1 : 0,
 			})
+			mass_limit -= mass;
 			allocateCriticals(mech);
 			break;
 		}

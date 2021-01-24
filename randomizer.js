@@ -911,10 +911,10 @@ function rollEngineAndJets(mech, always_max_jets) {
 			mech.num_jets = 1 + Math.floor(Math.random() * engine);
 		}
 		if (mechFreeMass(mech) >= 0) {
+			allocateCriticals(mech);
 			return true;
 		}
 	}
-	allocateCriticals(mech);
 	return false;
 }
 

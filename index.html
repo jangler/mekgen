@@ -33,6 +33,7 @@
     <p>
       <button type="button" onclick="generate();">Generate</button>
       <a id="download_link"></a>
+      <span id="error_text" style="color: #f00;"></span>
     </p>
 
     <div class="sep"></div>
@@ -47,6 +48,7 @@ const max_tonnage = document.getElementById('max_tonnage');
 const always_max_jets = document.getElementById('always_max_jets');
 const require_energy_weapon = document.getElementById('require_energy_weapon');
 const download_link = document.getElementById('download_link');
+const error_text = document.getElementById('error_text');
 
 function generate() {
   let mech = rollMech({
@@ -56,11 +58,17 @@ function generate() {
     require_energy_weapon: require_energy_weapon,
   });
   console.log(mech);
-  let blob = new Blob([writeMEK(mech)], {type: 'application/mek'});
-  let url = URL.createObjectURL(blob);
-  download_link.href = url;
-  download_link.download = mech.chassis.mek_name + '99USR.MEK';
-  download_link.text = download_link.download;
+  if (!mech.error) {
+    let blob = new Blob([writeMEK(mech)], {type: 'application/mek'});
+    let url = URL.createObjectURL(blob);
+    download_link.href = url;
+    download_link.download = mech.chassis.mek_name + '99USR.MEK';
+    download_link.innerText = download_link.download;
+    error_text.innerText = '';
+  } else {
+    download_link.innerText = '';
+    error_text.innerText = mech.error;
+  }
 }
     </script>
   </body>

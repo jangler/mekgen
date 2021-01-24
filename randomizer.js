@@ -870,15 +870,15 @@ function rollMech(options) {
 	};
 	mech.chassis = rollChassis(options.min_mass, options.max_mass);
 	if (!mech.chassis) {
-		console.error('invalid mass restrictions');
-		return false;
+		mech.error = "invalid mass restriction";
+		return mech;
 	}
 	allocateCriticals(mech);
 	rollWeapons(mech, 2, options.require_energy_weapon);
 	rollArmor(mech);
 	if (!rollEngineAndJets(mech, options.always_max_jets)) {
-		console.error("couldn't fit engine");
-		return false;
+		mech.error = "error rolling engine";
+		return mech;
 	}
 	rollWeapons(mech, mechFreeMass(mech), false);
 	mech.variant_name = 'mekgen test';
@@ -992,9 +992,9 @@ function mechUsedMass(mech) {
 
 	// armor
 	if (mech.ferro) {
-		mass += ferroArmorMass(mech.total_armor_units)
+		mass += ferroArmorMass(mech.total_armor_units);
 	} else {
-		console.error('std armor mass NYI'); // TODO
+		mech.error = "std armor not yet implemented";
 	}
 
 	// weapons/ammo
@@ -1107,10 +1107,8 @@ function allocateCriticals(mech) {
 // randomly allocates weapons and ammo to the mech, including allocating
 // criticals.
 function rollWeapons(mech, mass_limit, energy_only) {
-	console.log('enter');
 	while (mech.weapons.length < mechlab.max_weapons) {
 		let free_crit = mechFreeCriticals(mech);
-		console.log(free_crit, mass_limit);
 		if (free_crit == 0 || mass_limit < 0.5) {
 			break;
 		}
